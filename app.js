@@ -13,6 +13,9 @@ const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 
+const { swaggerUi, swaggerSpec } = require('./swagger');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.use(helmet());
 
 app.use(cors());
