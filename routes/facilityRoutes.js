@@ -12,7 +12,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/v1/facilties:
+ * /api/v1/facilities:
  *   get:
  *     summary: Get all facilities
  *     tags: [Facilities]
@@ -32,7 +32,7 @@ router.route('/')
 
 /**
  * @swagger
- * /api/v1/facilties/{id}:
+ * /api/v1/facilities/{id}:
  *   get:
  *     summary: Get a facility by ID
  *     tags: [Facilities]
