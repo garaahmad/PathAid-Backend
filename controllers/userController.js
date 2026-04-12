@@ -1,8 +1,8 @@
 const User = require('../models/userModel');
+const TransportRequest = require('../models/transportRequestModel');
 
 exports.getAllUsers = async (req, res, next) => {
     try {
-
         const users = await User.find().select('-password');
         res.status(200).json(users);
     } catch (err) { next(err); }
@@ -42,7 +42,33 @@ exports.deleteUser = async (req, res, next) => {
 
 exports.getAvailableDriversForRequest = async (req, res, next) => {
     try {
-        const drivers = await User.find({ role: 'DRIVER', enabled: true }).select('-password');
-        res.status(200).json(drivers);
+        const requestId = req.params.requestId;
+        const request = await TransportRequest.findOne({ id: requestId });
+        
+        if (!request) return res.status(404).json({ message: 'Transport request not found' });
+
+        const busyStatuses = ['ACCEPTED', 'IN_TRANSIT', 'COMPLETED']; // Simplified, matching common busy states
+        
+        const transportTime = new Date(request.transportTime);
+        const start = new Date(transportTime.getTime() - 60 * 60 * 1000); // 1 hour before
+        const end = new Date(transportTime.getTime() + 60 * 60 * 1000);   // 1 hour after
+
+        // Find busy driver IDs
+        const busyRequests = await TransportRequest.find({
+            driverId: { $exists: true, $ne: null },
+            status: { $in: busyStatuses },
+            transportTime: { $gte: start, $lte: end }
+        });
+
+        const busyDriverIds = busyRequests.map(r => r.driverId);
+
+        // Find available drivers
+        const availableDrivers = await User.find({
+            role: 'DRIVER',
+            enabled: true,
+            id: { $nin: busyDriverIds }
+        }).select('-password');
+
+        res.status(200).json(availableDrivers);
     } catch (err) { next(err); }
 };
