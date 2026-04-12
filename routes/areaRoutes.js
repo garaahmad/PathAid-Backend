@@ -8,6 +8,32 @@ const areaCityMap = {
     'SOUTH': ['KHAN_YOUNIS', 'RAFAH'],
 };
 
+/**
+ * @swagger
+ * tags:
+ *   name: Areas
+ *   description: Area and city lookup
+ */
+
+/**
+ * @swagger
+ * /api/v1/{area}/cities:
+ *   get:
+ *     summary: Get cities for a specific area
+ *     tags: [Areas]
+ *     parameters:
+ *       - in: path
+ *         name: area
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [NORTH, GAZA, CENTER, SOUTH]
+ *     responses:
+ *       200:
+ *         description: Success
+ *       404:
+ *         description: Area not found
+ */
 router.get('/cities', (req, res) => {
     const area = req.params.area.toUpperCase();
     const cities = areaCityMap[area];

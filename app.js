@@ -14,7 +14,14 @@ const globalErrorHandler = require('./controllers/errorController');
 const app = express();
 
 const { swaggerUi, swaggerSpec } = require('./swagger');
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+        docExpansion: 'list',
+        filter: true,
+        showRequestHeaders: true,
+    },
+    customSiteTitle: "PathAid API Documentation",
+}));
 
 app.use(helmet());
 
