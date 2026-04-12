@@ -1,4 +1,5 @@
 const Vehicle = require('../models/vehicleModel');
+const TransportRequest = require('../models/transportRequestModel');
 
 exports.getAllVehicles = async (req, res, next) => {
     try {
@@ -17,9 +18,33 @@ exports.getVehicle = async (req, res, next) => {
 
 exports.getAvailableVehiclesForRequest = async (req, res, next) => {
     try {
+        const requestId = req.params.requestId;
+        const request = await TransportRequest.findOne({ id: requestId });
+        
+        if (!request) return res.status(404).json({ message: 'Transport request not found' });
 
-        const docs = await Vehicle.find({ status: 'ACTIVE' });
-        res.status(200).json(docs);
+        const busyStatuses = ['ACCEPTED', 'IN_TRANSIT', 'COMPLETED'];
+        
+        const transportTime = new Date(request.transportTime);
+        const start = new Date(transportTime.getTime() - 60 * 60 * 1000);
+        const end = new Date(transportTime.getTime() + 60 * 60 * 1000);
+
+        // Find busy vehicle IDs
+        const busyRequests = await TransportRequest.find({
+            vehicleId: { $exists: true, $ne: null },
+            status: { $in: busyStatuses },
+            transportTime: { $gte: start, $lte: end }
+        });
+
+        const busyVehicleIds = busyRequests.map(r => r.vehicleId);
+
+        // Find available vehicles
+        const availableVehicles = await Vehicle.find({
+            status: 'ACTIVE',
+            id: { $nin: busyVehicleIds }
+        });
+
+        res.status(200).json(availableVehicles);
     } catch (err) { next(err); }
 };
 
